@@ -19,9 +19,9 @@
                           reports / analysis / notes
 ```
 
-## Phase 0：项目骨架
+## Phase 0：项目骨架（已完成）
 
-目录、`.gitignore`、`.env.example`、`requirements.txt`、`AGENTS.md` 占位、`rules/`、报告模板、Skill 去密钥。完成后推 `main`，在 `develop` 继续开发。
+目录、`.gitignore`、`.env.example`、`requirements.txt`、`AGENTS.md` 占位、`rules/`、报告模板、Skill 去密钥。已推 `main`；后续在 `develop` 开发。
 
 ## Phase 1：本地数据体系
 
