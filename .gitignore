@@ -29,6 +29,7 @@ Thumbs.db
 # Local training data (privacy)
 data/raw/
 data/normalized/
+data/plans/*.json
 data/training.db
 data/training.db-*
 data/sync_state.json

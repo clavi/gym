@@ -23,15 +23,14 @@
 
 目录、`.gitignore`、`.env.example`、`requirements.txt`、`AGENTS.md` 占位、`rules/`、报告模板、Skill 去密钥。已推 `main`；后续在 `develop` 开发。
 
-## Phase 1：本地数据体系
+## Phase 1：本地数据体系（已完成）
 
-- `scripts/xunji_client.py`：读训练（full）、读计划 gzip、限频、鉴权自 `XUNJI_API_KEY`
+- `scripts/xunji_client.py`：读训练（full）、读计划 gzip、限频、鉴权自 `XUNJI_API_KEY`；`upsert_trains` 仅封装
 - `scripts/sync_training.py`：增量按日写 `data/raw/training/YYYY/YYYY-MM-DD.json`，更新 SQLite 与 `data/sync_state.json`
 - `scripts/sync_plan.py`：list/get → `data/plans/`
-- `scripts/normalize.py`：展平 set 级记录入 SQLite
-- 写回仅封装，不做默认 CLI
+- `scripts/normalize.py` / `scripts/db.py`：展平 set 级记录入 SQLite
 
-验收：同步一周 Raw 齐全；SQLite 可查次数/RPE/容量；重复 sync 幂等且限频。
+验收：`python scripts/sync_training.py --days 7`；SQLite 可查次数/RPE/容量；重复 sync 幂等且限频。
 
 ## Phase 2：AI 分析体系
 
