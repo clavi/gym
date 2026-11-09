@@ -11,7 +11,7 @@ pip install -r requirements.txt
 copy .env.example .env   # 填入训记 App 申请的 XUNJI_API_KEY
 ```
 
-同步训练（默认最近 7 天，最近 3 天强制重拉；full 读间隔约 30s）：
+同步训练（默认续接上次同步；首次默认最近 7 天，最近 3 天追加刷新快照；full 读间隔约 30s）：
 
 ```powershell
 python scripts/sync_training.py --days 7
@@ -25,12 +25,33 @@ python scripts/sync_plan.py
 python scripts/sync_plan.py --start 2026-10-01 --end 2026-10-31
 ```
 
+导出某一 ISO 周的事实周报（判断段落留空，待讨论）：
+
+```powershell
+python scripts/export.py --week 2026-W40
+python scripts/export.py --week 2026-W40 --write
+```
+
 仅从已有 Raw 重建 SQLite：
 
 ```powershell
 python scripts/normalize.py --date 2026-10-06
 python scripts/normalize.py --all
 ```
+
+## 统一数据访问
+
+训练、饮食、身体指标和 Agent 个人模板统一通过本地优先访问层读取；默认不联网，显式 `--sync` 才允许请求接口。
+
+```powershell
+python scripts/data_access.py food --start 2026-11-04 --end 2026-11-04 --json
+python scripts/data_access.py body --start 2026-10-01 --end 2026-11-06 --types weight bodyfat --sync
+python scripts/data_access.py templates --sync
+python scripts/data_access.py reindex  # 纯离线归档入库/恢复游标
+python -m unittest discover -s tests -v
+```
+
+新读取均保留不可覆盖的 Raw 快照；饮食含每日 `limits`，身体自动分页，个人模板按持久游标增量同步（仅 Agent 专属文件夹）。各域使用独立 Key，详见 [数据访问层文档](doc/data-access.md)。
 
 ## 目录
 
@@ -58,4 +79,7 @@ python scripts/normalize.py --all
 
 - [本地化分析方案](doc/design/discuss.md)
 - [开发计划](doc/design/dev-plan.md)
+- [联合分析流程（v0.4）](doc/analysis-workflow.md)
+- [分析工具层：冻结底稿、指标与离线重算](doc/analysis-tools.md)
+- [联合分析流程 v0.2 复核记录](doc/analysis-workflow-review-v0.2.md)
 - [AGENTS.md](AGENTS.md) — 给 AI Agent 的项目约定

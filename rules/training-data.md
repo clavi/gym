@@ -6,7 +6,7 @@
 
 1. **Raw JSON**：API 原样归档，`include_full_data: true`，不修改  
 2. **SQLite**：统计与趋势查询  
-3. **Markdown**：知识与结论（reports / analysis / notes）
+3. **Markdown**：知识与结论（reports / analysis / notes）。分析写法见 [analysis.md](analysis.md)
 
 ## 鉴权与限频
 

@@ -8,8 +8,12 @@ import re
 from pathlib import Path
 from typing import Any
 
-from db import connect, delete_sessions_for_date, init_db
-from paths import RAW_TRAINING_DIR, raw_training_path
+if __package__:
+    from .db import delete_sessions_for_date, init_db
+    from .paths import RAW_TRAINING_DIR, raw_training_path
+else:
+    from db import delete_sessions_for_date, init_db
+    from paths import RAW_TRAINING_DIR, raw_training_path
 
 
 def _to_float(value: Any) -> float | None:
@@ -244,9 +248,29 @@ def _normalize_movement(
             )
 
 
-def normalize_payload(conn, payload: dict[str, Any], datestr: str | None = None) -> int:
+def normalize_payload(conn, payload: dict[str, Any], datestr: str | None = None, *, commit: bool = True) -> int:
+    """Atomically replace a day, or join the caller's transaction."""
+    if commit:
+        with conn:
+            return _normalize_payload(conn, payload, datestr)
+    return _normalize_payload(conn, payload, datestr)
+
+
+def _normalize_payload(conn, payload: dict[str, Any], datestr: str | None = None) -> int:
     """Replace DB rows for dates found in payload. Returns session count."""
+    if not isinstance(payload, dict) or payload.get("success") is False or payload.get("res") is None:
+        raise ValueError("Invalid training response; existing data was preserved")
+    res = payload["res"]
+    if not isinstance(res, (dict, list)) or (
+        isinstance(res, dict) and not any(k in res for k in ("trains", "movements", "localid"))
+    ):
+        raise ValueError("Missing training list; existing data was preserved")
+    if isinstance(res, dict) and "trains" in res and not isinstance(res["trains"], list):
+        raise ValueError("Invalid training list; existing data was preserved")
     trains = _extract_trains(payload)
+    source = res.get("trains", [res]) if isinstance(res, dict) else res
+    if any(not isinstance(t, dict) for t in source):
+        raise ValueError("Invalid training record; existing data was preserved")
     dates: set[str] = set()
     for train in trains:
         d = train.get("datestr") or datestr
@@ -314,7 +338,6 @@ def normalize_payload(conn, payload: dict[str, Any], datestr: str | None = None)
     if not trains and datestr:
         delete_sessions_for_date(conn, datestr)
 
-    conn.commit()
     return count
 
 
@@ -322,14 +345,23 @@ def normalize_file(path: Path, conn=None) -> int:
     own = conn is None
     conn = conn or init_db()
     payload = json.loads(path.read_text(encoding="utf-8"))
-    datestr = path.stem  # YYYY-MM-DD
-    n = normalize_payload(conn, payload, datestr=datestr)
-    if own:
-        conn.close()
-    return n
+    manifest = path.with_suffix(".request.json")
+    datestr = json.loads(manifest.read_text(encoding="utf-8"))["query"]["datestr"] if manifest.is_file() else path.stem
+    try:
+        return normalize_payload(conn, payload, datestr=datestr)
+    finally:
+        if own:
+            conn.close()
 
 
 def normalize_date(datestr: str, conn=None) -> int:
+    from datetime import date
+    date.fromisoformat(datestr)
+    manifests = sorted(RAW_TRAINING_DIR.glob("snapshots/*.request.json"), reverse=True)
+    for manifest in manifests:
+        request = json.loads(manifest.read_text(encoding="utf-8"))
+        if request["query"].get("datestr") == datestr:
+            return normalize_file(manifest.with_name(manifest.name.replace(".request.json", ".json")), conn)
     path = raw_training_path(datestr)
     if not path.exists():
         raise FileNotFoundError(f"Raw file not found: {path}")
@@ -339,12 +371,16 @@ def normalize_date(datestr: str, conn=None) -> int:
 def normalize_all(conn=None) -> tuple[int, int]:
     own = conn is None
     conn = conn or init_db()
-    files = sorted(RAW_TRAINING_DIR.glob("*/*.json"))
+    files = sorted(RAW_TRAINING_DIR.glob("????/????-??-??.json"))
+    manifests = sorted(RAW_TRAINING_DIR.glob("snapshots/*.request.json"), key=lambda p: p.name.split("_")[1])
+    files.extend(p.with_name(p.name.replace(".request.json", ".json")) for p in manifests)
     total_sessions = 0
-    for path in files:
-        total_sessions += normalize_file(path, conn=conn)
-    if own:
-        conn.close()
+    try:
+        for path in files:
+            total_sessions += normalize_file(path, conn=conn)
+    finally:
+        if own:
+            conn.close()
     return len(files), total_sessions
 
 

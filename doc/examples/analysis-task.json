@@ -1,0 +1,12 @@
+{
+  "start": "2026-10-26",
+  "end": "2026-11-01",
+  "modules": ["training"],
+  "questions": ["training.recorded_counts", "training.work_sets", "training.volume"],
+  "goal": {"value": "unknown", "source": "unknown"},
+  "baseline": "not_evaluated; preceding four ISO weeks displayed descriptively only",
+  "joint_window": "not_applicable",
+  "recording_completeness": {},
+  "background": "unknown; this is a tool smoke-test task, not a personal assessment",
+  "daily": true
+}

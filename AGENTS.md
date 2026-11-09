@@ -31,10 +31,13 @@
 
 ## 分析与写作
 
-1. 优先：本地 Raw / SQLite + 近期 `reports/weekly/` + `notes/` + `plans/current.md`
-2. 讨论结论经用户确认后再写入 Markdown
-3. 周报结构参考 `reports/weekly/_template.md`
-4. 写回训记前必须展示变更摘要并等待用户确认（第一期默认不做写回）
+细则见 [rules/analysis.md](rules/analysis.md)。
+
+1. 先跑 `python scripts/export.py --week YYYY-Www` 取得事实底稿，再读近期周报、`notes/`、`plans/current.md`
+2. 「最近一周」= 含今天的 ISO 周，文件为 `reports/weekly/YYYY-Www.md`
+3. 第一至五节、第七节只写库里的数字；第六、八、九、十节以及 `analysis/`、`notes/` 必须经用户确认后再写
+4. 已有周报时，`--write` 必须加 `--force`，避免盖掉讨论内容
+5. 写回训记前必须展示变更摘要并等待用户确认（第一期默认不做写回）
 
 ## 禁止
 

@@ -32,9 +32,13 @@
 
 验收：`python scripts/sync_training.py --days 7`；SQLite 可查次数/RPE/容量；重复 sync 幂等且限频。
 
-## Phase 2：AI 分析体系
+## Phase 2：AI 分析体系（已完成）
 
-补全 `AGENTS.md` 与 `rules/training-data.md`；周报模板；可选 `export.py`。验收：本地数据分析并写入 `reports/weekly/YYYY-Www.md`。
+- `rules/analysis.md`：事实与判断分开；ISO 周报路径；讨论后再写建议
+- `scripts/export.py`：从 SQLite 生成周报第一至五节与第七节
+- `AGENTS.md`、训练 Skill 指向同一套规则
+
+验收：`python scripts/export.py --week YYYY-Www --write` → `reports/weekly/YYYY-Www.md`。
 
 ## Phase 3：知识沉淀（使用节奏）
 
@@ -60,3 +64,16 @@ Local MCP → 公网 MCP；第一期不做 Web UI / 服务端 / 饮食身体同�
 - 本地归档 `include_full_data: true`  
 - Raw 只读不改  
 - Raw/DB 不提交远程  
+
+## 数据访问层补充（2026-11）
+
+按新的需求扩展第一期只读访问能力：训练、饮食、身体、Agent 个人模板。
+
+- 本地优先统一入口 `scripts/access.py`，命令入口 `scripts/data_access.py`。
+- 各域独立鉴权、响应校验、限频、重试与安全错误分类。
+- Raw 只追加快照；SQLite schema v2 增加饮食/身体/模板/查询索引，不修改旧 Raw。
+- 身体分页、模板游标与 tombstone、事务化归一化、离线重放恢复。
+- 保留官方计划读取；本次不扩展远程写入流程，不开发 MCP 或 Web。
+- 已按用户要求完成身体查询与 Agent 空文件夹首屏的真实 API 联调；非空模板与多页/删除事件仍以离线契约测试验证。
+
+使用与边界见 [数据访问层文档](../data-access.md)。

@@ -1,9 +1,8 @@
 ---
 name: xunji-training
 description: >-
-  训记训练数据本地同步与分析规则。在同步训记训练/计划、查询本地 Raw 或 SQLite、
-  生成训练报告，或用户提到训记 Open API 时使用。密钥只从 XUNJI_API_KEY 读取。
-disable-model-invocation: true
+  训记训练数据本地同步与分析。在同步训记训练/计划、查询本地 SQLite、
+  分析一周训练、生成周报，或用户提到训记时使用。密钥只从 XUNJI_API_KEY 读取。
 ---
 
 # 训记训练数据 Skill
@@ -14,11 +13,14 @@ disable-model-invocation: true
 2. 完整 HTTP 示例与写回细节见 [../xunji-all-skills.md](../xunji-all-skills.md) 中「训记训练数据 Open API Skill」一节
 3. 密钥：环境变量 `XUNJI_API_KEY`，禁止写入仓库
 
-## 本地优先
+## 分析一周
 
-- 分析时先读 `data/raw/`、`data/training.db`、`reports/`、`notes/`
-- 仅在用户明确要求同步时运行 `scripts/sync_training.py` / `scripts/sync_plan.py`（Phase 1 实现后）
-- 写回前展示摘要并等待确认
+1. 读 [rules/analysis.md](../../../rules/analysis.md)
+2. 跑 `python scripts/export.py --week YYYY-Www` 得到事实底稿
+3. 对照 `reports/weekly/`、`notes/`、`plans/current.md` 与用户讨论
+4. 确认后再把判断写入周报第六、八、九、十节；事实节用 `export.py --write`
+5. 仅在用户明确要求同步时运行 `scripts/sync_training.py` / `scripts/sync_plan.py`
+6. 写回前展示摘要并等待确认
 
 ## 归档约定
 
